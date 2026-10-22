@@ -41,10 +41,11 @@ pipeline {
                 bat "docker rm -f transient-test-container 2>nul || (exit 0)"
                 bat "docker run -d --name transient-test-container -p 8888:80 ${env.DOCKER_USER}/${env.IMAGE_NAME}:${params.DOCKER_IMAGE_TAG}"
                 
-                // Using PowerShell Start-Sleep to avoid the background timeout input error completely
-                bat "powershell -Command \"Start-Sleep -Seconds 5\""
+                // Allow the Nginx engine ample time to initialize background workers completely
+                bat "powershell -Command \"Start-Sleep -Seconds 8\""
                 
-                bat "curl -f http://localhost:8888"
+                // Explicitly use 127.0.0.1 to avoid Windows IPv6 localhost address resolution failures
+                bat "curl -f http://127.0.0.1:8888"
                 bat "docker rm -f transient-test-container"
             }
         }
