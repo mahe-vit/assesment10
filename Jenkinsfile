@@ -23,7 +23,6 @@ pipeline {
             parallel {
                 stage('Docker Compile') {
                     steps {
-                        // Using explicit Groovy string interpolation to safely bypass Windows cmd variable limitations
                         bat "docker build -t ${env.DOCKER_USER}/${env.IMAGE_NAME}:${params.DOCKER_IMAGE_TAG} ."
                     }
                 }
@@ -41,7 +40,10 @@ pipeline {
             steps {
                 bat "docker rm -f transient-test-container 2>nul || (exit 0)"
                 bat "docker run -d --name transient-test-container -p 8888:80 ${env.DOCKER_USER}/${env.IMAGE_NAME}:${params.DOCKER_IMAGE_TAG}"
-                bat "timeout /t 5 /nobreak"
+                
+                // Using PowerShell Start-Sleep to avoid the background timeout input error completely
+                bat "powershell -Command \"Start-Sleep -Seconds 5\""
+                
                 bat "curl -f http://localhost:8888"
                 bat "docker rm -f transient-test-container"
             }
